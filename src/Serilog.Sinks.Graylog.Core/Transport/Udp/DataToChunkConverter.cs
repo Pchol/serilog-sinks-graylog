@@ -16,7 +16,6 @@ namespace Serilog.Sinks.Graylog.Core.Transport.Udp
         /// <param name="message">The message.</param>
         /// <returns>array of chunks to save</returns>
         /// <exception cref="System.ArgumentException">message was too long</exception>
-        /// <exception cref="System.ArgumentException">message was too long</exception>
         IList<byte[]> ConvertToChunks(byte[] message);
     }
 
@@ -43,7 +42,6 @@ namespace Serilog.Sinks.Graylog.Core.Transport.Udp
         /// </summary>
         /// <param name="message">The message.</param>
         /// <returns>array of chunks to save</returns>
-        /// <exception cref="System.ArgumentException">message was too long</exception>
         /// <exception cref="System.ArgumentException">message was too long</exception>
         public IList<byte[]> ConvertToChunks(byte[] message)
         {

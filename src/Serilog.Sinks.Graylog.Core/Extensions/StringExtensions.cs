@@ -23,12 +23,24 @@ namespace Serilog.Sinks.Graylog.Core.Extensions
         /// </summary>
         /// <param name="source">The source.</param>
         /// <param name="maxLength">The maximum length.</param>
+        /// <param name="postfix"></param>
         /// <returns></returns>
-        public static string Truncate(this string source, int maxLength)
+        public static string Truncate(this string source, int maxLength, string postfix = "")
         {
-            return source.Length > maxLength 
-                ? source.Substring(0, maxLength) 
-                : source;
+            if (source.Length <= maxLength)
+            {
+                return source;
+            }
+
+            if (postfix.Length > 0)
+            {
+                var lengthWithoutPostfix = maxLength - postfix.Length;
+                return source.Substring(0, lengthWithoutPostfix) + postfix;
+            }
+            else
+            {
+                return source.Substring(0, maxLength);
+            }
         }
 
         public static string Expand(this string source)

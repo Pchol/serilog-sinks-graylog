@@ -23,9 +23,10 @@ namespace Serilog.Sinks.Graylog.Core.Tests.Extensions
         [InlineData("SomeTestString", "Some", 4)]
         [InlineData("SomeTestString", "SomeTest", 8)]
         [InlineData("SomeTestString", "SomeTestString", 200)]
-        public void WhenShortMessage_ThenResultShouldBeExpected(string given, string expected, int length)
+        [InlineData("SomeTestString", "SomeT...", 8, "...")]
+        public void WhenShortMessage_ThenResultShouldBeExpected(string given, string expected, int length, string postfix = "")
         {
-            var actual = given.Truncate(length);
+            var actual = given.Truncate(length, postfix);
 
             actual.Should().BeEquivalentTo(expected);
         }

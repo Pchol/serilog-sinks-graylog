@@ -32,6 +32,12 @@ namespace Serilog.Sinks.Graylog.Core
             Converters = new List<JsonConverter>()
         };
 
+        public static readonly TruncateLongMessageSettings DefaultTruncateLongMessageSettings =
+            new TruncateLongMessageSettings()
+            {
+                Available = false
+            };
+
         // ReSharper disable once PublicConstructorInAbstractClass
         public GraylogSinkOptionsBase()
         {
@@ -47,9 +53,8 @@ namespace Serilog.Sinks.Graylog.Core
             ExcludeMessageTemplateProperties = false;
             MessageTemplateFieldName = DefaultMessageTemplateFieldName;
             SerializerSettings = DefaultSerializerSettings;
+            TruncateLongMessageSettings = DefaultTruncateLongMessageSettings;
         }
-
-        
 
         /// <summary>
         /// Gets or sets the name of the message template field.
@@ -177,6 +182,8 @@ namespace Serilog.Sinks.Graylog.Core
         public bool UseSsl { get; set; }
 
         public JsonSerializerSettings SerializerSettings { get; set; }
+
+        public TruncateLongMessageSettings TruncateLongMessageSettings { get; set; }
 
         /// <summary>
         /// Gets or sets the username in http

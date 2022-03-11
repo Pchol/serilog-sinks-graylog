@@ -5,6 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog.Events;
+using Serilog.Formatting.Display;
 using Serilog.Parsing;
 using Serilog.Sinks.Graylog.Core.Extensions;
 using Serilog.Sinks.Graylog.Core.Helpers;
@@ -42,7 +43,16 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
         /// <returns></returns>
         public virtual JObject Build(LogEvent logEvent)
         {
-            string message = logEvent.RenderMessage();
+            var messageTemplateTextFormatter = new MessageTemplateTextFormatter("{Message:l}");
+            var writer = new StringWriter();
+            messageTemplateTextFormatter.Format(logEvent, writer);
+            string message = writer.ToString();
+
+            if (Options.TruncateLongMessageSettings.Available)
+            {
+                message = message.Truncate(Options.TruncateLongMessageSettings.MaxLengthMessage, Options.TruncateLongMessageSettings.PostfixTruncatedMessage);
+            }
+
             string shortMessage = message.Truncate(Options.ShortMessageMaxLength);
 
             var gelfMessage = new GelfMessage
@@ -87,7 +97,7 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
 
         private void AddAdditionalField(IDictionary<string, JToken> jObject,
                                         KeyValuePair<string, LogEventPropertyValue> property,
-                                        string memberPath = "" )
+                                        string memberPath = "")
         {
             string key = string.IsNullOrEmpty(memberPath)
                 ? property.Key
@@ -114,12 +124,31 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
 
                     var shouldCallToString = ShouldCallToString(scalarValue.Value.GetType());
 
-                    JToken value = JToken.FromObject(shouldCallToString ? scalarValue.Value.ToString() : scalarValue.Value, _serializer);
-                
+                    JToken value;
+                    if (shouldCallToString)
+                    {
+                        var preparedStringValue = scalarValue.ToString("l", null);
+                        if (Options.TruncateLongMessageSettings.Available && preparedStringValue.Length > Options.TruncateLongMessageSettings.MaxLengthPropertyMessage)
+                        {
+                            preparedStringValue = preparedStringValue.Truncate(Options.TruncateLongMessageSettings.MaxLengthPropertyMessage, Options.TruncateLongMessageSettings. PostfixTruncatedMessage);
+                        }
+
+                        value = JToken.FromObject(preparedStringValue, _serializer);
+                    }
+                    else
+                    {
+                        value = JToken.FromObject(scalarValue.Value, _serializer);
+                    }
+
                     jObject.Add(key, value);
                     break;
                 case SequenceValue sequenceValue:
-                    var sequenceValueString = RenderPropertyValue(sequenceValue);
+                    var sequenceValueString = sequenceValue.ToString("l", null);
+                    if (Options.TruncateLongMessageSettings.Available && sequenceValueString.Length > Options.TruncateLongMessageSettings.MaxLengthPropertyMessage)
+                    {
+                        sequenceValueString.Truncate(Options.TruncateLongMessageSettings.MaxLengthPropertyMessage, Options.TruncateLongMessageSettings.PostfixTruncatedMessage);
+                    }
+
                     jObject.Add(key, sequenceValueString);
                     break;
                 case StructureValue structureValue:
@@ -133,7 +162,7 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
                 case DictionaryValue dictionaryValue:
                     foreach (KeyValuePair<ScalarValue, LogEventPropertyValue> dictionaryValueElement in dictionaryValue.Elements)
                     {
-                        var renderedKey = RenderPropertyValue(dictionaryValueElement.Key);
+                        var renderedKey = dictionaryValueElement.Key.ToString("l", null);
                         AddAdditionalField(jObject, new KeyValuePair<string, LogEventPropertyValue>(renderedKey, dictionaryValueElement.Value), key);
                     }
                     break;
@@ -160,17 +189,6 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
             }
 
             return true;
-        }
-
-        private string RenderPropertyValue(LogEventPropertyValue propertyValue)
-        {
-            using (TextWriter tw = new StringWriter())
-            {
-                propertyValue.Render(tw);
-                string result = tw.ToString();
-                result = result.Trim('"');
-                return result;
-            }
         }
     }
 }

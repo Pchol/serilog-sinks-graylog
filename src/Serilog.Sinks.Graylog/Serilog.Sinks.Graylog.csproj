@@ -21,8 +21,8 @@
     <Copyright>Anton Volkov Copyright © 2019</Copyright>
     <NeutralLanguage>en</NeutralLanguage>
     
-    <Version>2.3.0</Version>
-    <AssemblyVersion>2.3.0.0</AssemblyVersion>
+    <Version>2.3.9</Version>
+    <AssemblyVersion>2.3.9.0</AssemblyVersion>
     <FileVersion>2.3.0.0</FileVersion>
     <SignAssembly>true</SignAssembly>
 

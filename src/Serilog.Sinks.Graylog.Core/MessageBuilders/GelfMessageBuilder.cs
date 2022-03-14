@@ -127,10 +127,16 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
                     JToken value;
                     if (shouldCallToString)
                     {
-                        var preparedStringValue = scalarValue.ToString("l", null);
-                        if (Options.TruncateLongMessageSettings.Available && preparedStringValue.Length > Options.TruncateLongMessageSettings.MaxLengthPropertyMessage)
+                        var preparedStringValue = scalarValue.Value is string
+                            ? scalarValue.ToString("l", null)
+                            : scalarValue.ToString();
+
+                        if (Options.TruncateLongMessageSettings.Available && preparedStringValue.Length >
+                            Options.TruncateLongMessageSettings.MaxLengthPropertyMessage)
                         {
-                            preparedStringValue = preparedStringValue.Truncate(Options.TruncateLongMessageSettings.MaxLengthPropertyMessage, Options.TruncateLongMessageSettings. PostfixTruncatedMessage);
+                            preparedStringValue = preparedStringValue.Truncate(
+                                Options.TruncateLongMessageSettings.MaxLengthPropertyMessage,
+                                Options.TruncateLongMessageSettings.PostfixTruncatedMessage);
                         }
 
                         value = JToken.FromObject(preparedStringValue, _serializer);
@@ -143,11 +149,7 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
                     jObject.Add(key, value);
                     break;
                 case SequenceValue sequenceValue:
-                    var sequenceValueString = sequenceValue.ToString("l", null);
-                    if (Options.TruncateLongMessageSettings.Available && sequenceValueString.Length > Options.TruncateLongMessageSettings.MaxLengthPropertyMessage)
-                    {
-                        sequenceValueString.Truncate(Options.TruncateLongMessageSettings.MaxLengthPropertyMessage, Options.TruncateLongMessageSettings.PostfixTruncatedMessage);
-                    }
+                    var sequenceValueString = sequenceValue.ToString();
 
                     jObject.Add(key, sequenceValueString);
                     break;
@@ -162,7 +164,7 @@ namespace Serilog.Sinks.Graylog.Core.MessageBuilders
                 case DictionaryValue dictionaryValue:
                     foreach (KeyValuePair<ScalarValue, LogEventPropertyValue> dictionaryValueElement in dictionaryValue.Elements)
                     {
-                        var renderedKey = dictionaryValueElement.Key.ToString("l", null);
+                        var renderedKey = dictionaryValueElement.Key.ToString();
                         AddAdditionalField(jObject, new KeyValuePair<string, LogEventPropertyValue>(renderedKey, dictionaryValueElement.Value), key);
                     }
                     break;
